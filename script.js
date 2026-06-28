@@ -121,6 +121,54 @@ if (existingData) {
   renderDashboard(existingData);
 } else {
   openSetup();
+}
+setupForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const data = {
+    name: nameInput.value.trim(),
+    subjects: subjectsInput.value.trim(),
+    deadlines: deadlinesInput.value.trim(),
+    todos: todoInput.value.trim(),
+    notes: notesInput.value.trim(),
+    pomodoro: Number(pomodoroInput.value) || 25
+  };
+
+  saveData(data);
+  setupDialog.close();
+  renderDashboard(data);
+});
+
+editDeadlinesBtn.addEventListener("click", () => {
+  if (!currentData) return;
+  openSetup(currentData);
+  deadlinesInput.focus();
+});
+
+editTodoBtn.addEventListener("click", () => {
+  if (!currentData) return;
+  openSetup(currentData);
+  todoInput.focus();
+});
+
+editNotesBtn.addEventListener("click", () => {
+  if (!currentData) return;
+  openSetup(currentData);
+  notesInput.focus();
+});
+
+editPomodoroBtn.addEventListener("click", () => {
+  if (!currentData) return;
+  openSetup(currentData);
+  pomodoroInput.focus();
+});
+
+const existingData = loadData();
+
+if (existingData) {
+  renderDashboard(existingData);
+} else {
+  openSetup();
 }function renderList(container, items, emptyText) {
   if (!items.length) {
     container.innerHTML = `<p class="muted">${emptyText}</p>`;
