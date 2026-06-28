@@ -15,26 +15,90 @@
     </header>
 
     <main class="dashboard">
-      <section class="card" id="deadlinesCard">
-        <h2>Deadlines</h2>
-        <div id="deadlinesList" class="list"></div>
+      <section class="card">
+        <details open>
+          <summary>Deadlines</summary>
+          <div class="section-body">
+            <div id="deadlinesList" class="list"></div>
+            <button class="small-btn" id="editDeadlinesBtn">Edit deadlines</button>
+          </div>
+        </details>
       </section>
 
-      <section class="card" id="todoCard">
-        <h2>To-do</h2>
-        <div id="todoList" class="list"></div>
+      <section class="card">
+        <details open>
+          <summary>To-do</summary>
+          <div class="section-body">
+            <div id="todoList" class="list"></div>
+            <button class="small-btn" id="editTodoBtn">Edit to-do</button>
+          </div>
+        </details>
       </section>
 
-      <section class="card" id="notesCard">
-        <h2>Notes</h2>
-        <div id="notesList" class="list"></div>
+      <section class="card">
+        <details open>
+          <summary>Notes</summary>
+          <div class="section-body">
+            <div id="notesList" class="list"></div>
+            <button class="small-btn" id="editNotesBtn">Edit notes</button>
+          </div>
+        </details>
       </section>
 
-      <section class="card" id="pomodoroCard">
-        <h2>Pomodoro</h2>
-        <div id="pomodoroInfo" class="list"></div>
+      <section class="card">
+        <details open>
+          <summary>Pomodoro</summary>
+          <div class="section-body">
+            <div id="pomodoroInfo" class="list"></div>
+            <button class="small-btn" id="editPomodoroBtn">Edit timer</button>
+          </div>
+        </details>
       </section>
     </main>
+  </div>
+
+  <dialog id="setupDialog">
+    <form id="setupForm" method="dialog" class="setup-form">
+      <h2>Welcome to Noreli</h2>
+      <p>Let’s set up your study dashboard.</p>
+
+      <label>
+        Your name
+        <input type="text" id="nameInput" placeholder="Harrison" required />
+      </label>
+
+      <label>
+        Subjects / classes
+        <input type="text" id="subjectsInput" placeholder="Math, English, Biology" />
+      </label>
+
+      <label>
+        Deadlines
+        <textarea id="deadlinesInput" rows="3" placeholder="Assignment 1 - Friday&#10;Test - next Tuesday"></textarea>
+      </label>
+
+      <label>
+        To-do items
+        <textarea id="todoInput" rows="3" placeholder="Finish notes&#10;Revise chapter 4"></textarea>
+      </label>
+
+      <label>
+        Notes
+        <textarea id="notesInput" rows="3" placeholder="Important reminders, study notes, etc."></textarea>
+      </label>
+
+      <label>
+        Pomodoro length in minutes
+        <input type="number" id="pomodoroInput" min="1" value="25" />
+      </label>
+
+      <button type="submit">Save setup</button>
+    </form>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>    </main>
   </div>
 
   <dialog id="setupDialog">
