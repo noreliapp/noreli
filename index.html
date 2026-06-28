@@ -20,7 +20,6 @@
           <summary>Deadlines</summary>
           <div class="section-body">
             <div id="deadlinesList" class="list"></div>
-            <button type="button" class="small-btn" id="editDeadlinesBtn">Edit deadlines</button>
           </div>
         </details>
       </section>
@@ -30,7 +29,6 @@
           <summary>To-do</summary>
           <div class="section-body">
             <div id="todoList" class="list"></div>
-            <button type="button" class="small-btn" id="editTodoBtn">Edit to-do</button>
           </div>
         </details>
       </section>
@@ -40,7 +38,6 @@
           <summary>Notes</summary>
           <div class="section-body">
             <div id="notesList" class="list"></div>
-            <button type="button" class="small-btn" id="editNotesBtn">Edit notes</button>
           </div>
         </details>
       </section>
@@ -50,7 +47,6 @@
           <summary>Pomodoro</summary>
           <div class="section-body">
             <div id="pomodoroInfo" class="list"></div>
-            <button type="button" class="small-btn" id="editPomodoroBtn">Edit timer</button>
           </div>
         </details>
       </section>
@@ -70,6 +66,35 @@
       <label>
         Subjects / classes
         <input type="text" id="subjectsInput" placeholder="Math, English, Biology" />
+      </label>
+
+      <label>
+        Deadlines
+        <textarea id="deadlinesInput" rows="3" placeholder="Assignment 1 - Friday&#10;Test - next Tuesday"></textarea>
+      </label>
+
+      <label>
+        To-do items
+        <textarea id="todoInput" rows="3" placeholder="Finish notes&#10;Revise chapter 4"></textarea>
+      </label>
+
+      <label>
+        Notes
+        <textarea id="notesInput" rows="3" placeholder="Important reminders, study notes, etc."></textarea>
+      </label>
+
+      <label>
+        Pomodoro length in minutes
+        <input type="number" id="pomodoroInput" min="1" value="25" />
+      </label>
+
+      <button type="submit">Save setup</button>
+    </form>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
       </label>
 
       <label>
