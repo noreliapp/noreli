@@ -11,19 +11,12 @@ const todoList = document.getElementById("todoList");
 const notesList = document.getElementById("notesList");
 const pomodoroInfo = document.getElementById("pomodoroInfo");
 
-const editDeadlinesBtn = document.getElementById("editDeadlinesBtn");
-const editTodoBtn = document.getElementById("editTodoBtn");
-const editNotesBtn = document.getElementById("editNotesBtn");
-const editPomodoroBtn = document.getElementById("editPomodoroBtn");
-
 const nameInput = document.getElementById("nameInput");
 const subjectsInput = document.getElementById("subjectsInput");
 const deadlinesInput = document.getElementById("deadlinesInput");
 const todoInput = document.getElementById("todoInput");
 const notesInput = document.getElementById("notesInput");
 const pomodoroInput = document.getElementById("pomodoroInput");
-
-let currentData = null;
 
 function loadData() {
   const saved = localStorage.getItem(STORAGE_KEY);
@@ -51,7 +44,6 @@ function renderList(container, items, emptyText) {
 }
 
 function renderDashboard(data) {
-  currentData = data;
   greeting.textContent = `Welcome back, ${data.name}`;
   subtitle.textContent = data.subjects
     ? `Today’s focus: ${data.subjects}`
@@ -91,9 +83,13 @@ setupForm.addEventListener("submit", (e) => {
   renderDashboard(data);
 });
 
-editDeadlinesBtn.addEventListener("click", () => {
-  if (!currentData) return;
-  openSetup(currentData);
+const existingData = loadData();
+
+if (existingData) {
+  renderDashboard(existingData);
+} else {
+  openSetup();
+}
   deadlinesInput.focus();
 });
 
