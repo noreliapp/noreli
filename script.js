@@ -1,40 +1,256 @@
-const STORAGE_KEY = "noreli-study-data";
+const startBtn = document.getElementById("startBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const resetBtn = document.getElementById("resetBtn");
+const clearLogBtn = document.getElementById("clearLogBtn");
+const saveTaskBtn = document.getElementById("saveTaskBtn");
+const taskInput = document.getElementById("taskInput");
 
-const setupDialog = document.getElementById("setupDialog");
-const setupForm = document.getElementById("setupForm");
+const sessionStatus = document.getElementById("sessionStatus");
+const elapsedTimeEl = document.getElementById("elapsedTime");
+const distractionCountEl = document.getElementById("distractionCount");
+const focusScoreEl = document.getElementById("focusScore");
+const mirror = document.getElementById("mirror");
+const mirrorText = document.getElementById("mirrorText");
+const mirrorMood = document.getElementById("mirrorMood");
+const currentTask = document.getElementById("currentTask");
+const logList = document.getElementById("logList");
 
-const greeting = document.getElementById("greeting");
-const subtitle = document.getElementById("subtitle");
+let sessionActive = false;
+let sessionPaused = false;
+let sessionStart = 0;
+let elapsedMs = 0;
+let timerId = null;
+let distractionCount = 0;
+let lastHiddenAt = null;
+let currentTaskText = localStorage.getItem("distractionMirrorTask") || "";
+let logEntries = JSON.parse(localStorage.getItem("distractionMirrorLog") || "[]");
 
-const deadlinesPreview = document.getElementById("deadlinesPreview");
-const todoPreview = document.getElementById("todoPreview");
-const notesPreview = document.getElementById("notesPreview");
-const pomodoroPreview = document.getElementById("pomodoroPreview");
-
-const deadlinesFull = document.getElementById("deadlinesFull");
-const todoFull = document.getElementById("todoFull");
-const notesFull = document.getElementById("notesFull");
-const pomodoroFull = document.getElementById("pomodoroFull");
-
-const editDeadlinesBtn = document.getElementById("editDeadlinesBtn");
-const editTodoBtn = document.getElementById("editTodoBtn");
-const editNotesBtn = document.getElementById("editNotesBtn");
-const editPomodoroBtn = document.getElementById("editPomodoroBtn");
-
-const nameInput = document.getElementById("nameInput");
-const subjectsInput = document.getElementById("subjectsInput");
-const deadlinesInput = document.getElementById("deadlinesInput");
-const todoInput = document.getElementById("todoInput");
-const notesInput = document.getElementById("notesInput");
-const pomodoroInput = document.getElementById("pomodoroInput");
-
-let currentData = null;
-
-function loadData() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  return saved ? JSON.parse(saved) : null;
+function formatTime(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const mins = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+  const secs = String(totalSeconds % 60).padStart(2, "0");
+  return `${mins}:${secs}`;
 }
 
+function getFocusScore() {
+  const minutes = Math.max(elapsedMs / 60000, 0.5);
+  const penalties = distractionCount * 12;
+  const base = 100 - penalties - Math.max(0, Math.floor(minutes - 0.5) * 2);
+  return Math.max(0, Math.min(100, Math.round(base)));
+}
+
+function updateMirror() {
+  const score = getFocusScore();
+  focusScoreEl.textContent = score;
+  distractionCountEl.textContent = distractionCount;
+  elapsedTimeEl.textContent = formatTime(elapsedMs);
+
+  mirror.classList.remove("calm", "focused", "drifting", "panicked");
+
+  if (!sessionActive && elapsedMs === 0) {
+    mirror.classList.add("calm");
+    mirrorText.textContent = "Start a session to begin tracking your focus.";
+    mirrorMood.textContent = "Calm";
+    sessionStatus.textContent = "Not started";
+    return;
+  }
+
+  if (sessionPaused) {
+    mirror.classList.add("calm");
+    mirrorText.textContent = "Session paused. The mirror is waiting for you to continue.";
+    mirrorMood.textContent = "Paused";
+    sessionStatus.textContent = "Paused";
+    return;
+  }
+
+  sessionStatus.textContent = "Active";
+
+  if (score >= 80) {
+    mirror.classList.add("focused");
+    mirrorText.textContent = "Nice. Your attention looks steady right now.";
+    mirrorMood.textContent = "Focused";
+  } else if (score >= 55) {
+    mirror.classList.add("drifting");
+    mirrorText.textContent = "You are still going, but the mirror notices some drifting.";
+    mirrorMood.textContent = "Drifting";
+  } else {
+    mirror.classList.add("panicked");
+    mirrorText.textContent = "Your focus is slipping. Pull back in and finish this block.";
+    mirrorMood.textContent = "Off track";
+  }
+}
+
+function renderLog() {
+  logList.innerHTML = "";
+
+  if (logEntries.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "log-entry";
+    empty.textContent = "No saved sessions yet.";
+    logList.appendChild(empty);
+    return;
+  }
+
+  logEntries.slice().reverse().forEach((entry) => {
+    const item = document.createElement("div");
+    item.className = "log-entry";
+    item.innerHTML = `<small>${entry.date}</small>${entry.text}`;
+    logList.appendChild(item);
+  });
+}
+
+function saveState() {
+  localStorage.setItem("distractionMirrorTask", currentTaskText);
+  localStorage.setItem("distractionMirrorLog", JSON.stringify(logEntries));
+}
+
+function startTimer() {
+  clearInterval(timerId);
+  timerId = setInterval(() => {
+    if (!sessionActive || sessionPaused) return;
+    elapsedMs = Date.now() - sessionStart;
+    updateMirror();
+  }, 250);
+}
+
+function startSession() {
+  if (!sessionActive) {
+    sessionActive = true;
+    sessionPaused = false;
+    sessionStart = Date.now() - elapsedMs;
+    startTimer();
+    logEntries.push({
+      date: new Date().toLocaleString(),
+      text: "Session started."
+    });
+    saveState();
+    renderLog();
+  } else if (sessionPaused) {
+    sessionPaused = false;
+    sessionStart = Date.now() - elapsedMs;
+    startTimer();
+  }
+
+  pauseBtn.disabled = false;
+  pauseBtn.textContent = "Pause";
+  updateMirror();
+}
+
+function pauseSession() {
+  if (!sessionActive) return;
+
+  sessionPaused = !sessionPaused;
+
+  if (sessionPaused) {
+    pauseBtn.textContent = "Resume";
+    logEntries.push({
+      date: new Date().toLocaleString(),
+      text: "Session paused."
+    });
+  } else {
+    sessionStart = Date.now() - elapsedMs;
+    pauseBtn.textContent = "Pause";
+    logEntries.push({
+      date: new Date().toLocaleString(),
+      text: "Session resumed."
+    });
+  }
+
+  saveState();
+  renderLog();
+  updateMirror();
+}
+
+function resetSession() {
+  sessionActive = false;
+  sessionPaused = false;
+  sessionStart = 0;
+  elapsedMs = 0;
+  distractionCount = 0;
+  lastHiddenAt = null;
+  clearInterval(timerId);
+  timerId = null;
+  pauseBtn.disabled = true;
+  pauseBtn.textContent = "Pause";
+  logEntries.push({
+    date: new Date().toLocaleString(),
+    text: "Session reset."
+  });
+  saveState();
+  renderLog();
+  updateMirror();
+}
+
+function addDistraction(reason) {
+  if (!sessionActive || sessionPaused) return;
+  distractionCount += 1;
+  logEntries.push({
+    date: new Date().toLocaleString(),
+    text: `Distraction detected: ${reason}.`
+  });
+  saveState();
+  renderLog();
+  updateMirror();
+}
+
+function saveTask() {
+  currentTaskText = taskInput.value.trim();
+  if (!currentTaskText) return;
+  currentTask.textContent = currentTaskText;
+  logEntries.push({
+    date: new Date().toLocaleString(),
+    text: `Saved task: ${currentTaskText}.`
+  });
+  saveState();
+  renderLog();
+  taskInput.value = "";
+}
+
+startBtn.addEventListener("click", startSession);
+pauseBtn.addEventListener("click", pauseSession);
+resetBtn.addEventListener("click", resetSession);
+clearLogBtn.addEventListener("click", () => {
+  logEntries = [];
+  saveState();
+  renderLog();
+});
+saveTaskBtn.addEventListener("click", saveTask);
+taskInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") saveTask();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    lastHiddenAt = Date.now();
+    addDistraction("you switched tabs or minimized the window");
+  } else if (lastHiddenAt) {
+    const awayFor = Date.now() - lastHiddenAt;
+    if (awayFor > 1500) {
+      addDistraction("you returned after being away");
+    }
+    lastHiddenAt = null;
+  }
+});
+
+window.addEventListener("blur", () => addDistraction("the window lost focus"));
+window.addEventListener("focus", () => updateMirror());
+
+function restoreState() {
+  if (currentTaskText) {
+    currentTask.textContent = currentTaskText;
+    taskInput.value = currentTaskText;
+  }
+
+  if (logEntries.length === 0) {
+    renderLog();
+  } else {
+    renderLog();
+  }
+
+  updateMirror();
+}
+
+restoreState();
 function saveData(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
